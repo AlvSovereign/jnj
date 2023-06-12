@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text as RNText } from 'react-native';
+import Constants from 'expo-constants';
 
 import EditScreenInfo from '../../components/EditScreenInfo';
 import { Text, View } from '../../components/Themed';
