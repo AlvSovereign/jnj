@@ -4,16 +4,43 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import { SplashScreen, Stack } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import { useFonts } from 'expo-font';
+import Constants from 'expo-constants';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-expo';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useBootstrap } from '../hooks/useBootstrap';
+import { SignInWithOAuth } from '../components/ui/button/SignInWithOAuth';
+import SignInScreen from '../features/SignInScreen';
+import { SignOut } from '../components/ui/button/SignOutButton';
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
+
+const CLERK_PUBLISHABLE_KEY =
+  Constants.expoConfig?.extra?.variables?.CLERK_PUBLISHABLE_KEY;
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return SecureStore.getItemAsync(key);
+    } catch (err) {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -21,17 +48,9 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
   const { isReady } = useBootstrap();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
 
   return (
     <>
@@ -46,13 +65,23 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <>
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={CLERK_PUBLISHABLE_KEY}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-          <Stack.Screen name='modal' options={{ presentation: 'modal' }} />
-        </Stack>
+        <SafeAreaProvider>
+          <SignedIn>
+            <Stack>
+              <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+              <Stack.Screen name='modal' options={{ presentation: 'modal' }} />
+            </Stack>
+          </SignedIn>
+          <SignedOut>
+            <SignInScreen />
+            <SignInWithOAuth />
+          </SignedOut>
+        </SafeAreaProvider>
       </ThemeProvider>
-    </>
+    </ClerkProvider>
   );
 }

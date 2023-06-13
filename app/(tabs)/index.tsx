@@ -1,9 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text as RNText } from 'react-native';
-import Constants from 'expo-constants';
-
 import EditScreenInfo from '../../components/EditScreenInfo';
 import { Text, View } from '../../components/Themed';
+import { SignOut } from '../../components/ui/button/SignOutButton';
+import UseUserExample from '../../components/UseUserExample';
+import UseAuthExample from '../../components/UseAuthExample';
 
 export default function TabOneScreen() {
   return (
@@ -20,7 +21,10 @@ export default function TabOneScreen() {
         lightColor='#eee'
         darkColor='rgba(255,255,255,0.1)'
       />
+      <UseAuthExample />
+      <UseUserExample />
       <EditScreenInfo path='app/(tabs)/index.tsx' />
+      <SignOut />
     </View>
   );
 }
