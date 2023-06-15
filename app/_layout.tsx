@@ -8,16 +8,24 @@ import { AppStateStatus, Platform, useColorScheme } from 'react-native';
 import { SplashScreen, Stack } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useBootstrap } from '../hooks/useBootstrap';
 import { SignInWithOAuth } from '../components/ui/button/SignInWithOAuth';
 import SignInScreen from '../features/SignInScreen';
+import { logAsyncStorage } from '../utils/log-async-storage';
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+});
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
@@ -43,6 +51,8 @@ const tokenCache = {
   },
 };
 
+logAsyncStorage();
+
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
@@ -66,7 +76,9 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister: asyncStoragePersister }}>
       <ClerkProvider
         tokenCache={tokenCache}
         publishableKey={CLERK_PUBLISHABLE_KEY}>
@@ -89,6 +101,6 @@ function RootLayoutNav() {
           </SafeAreaProvider>
         </ThemeProvider>
       </ClerkProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

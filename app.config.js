@@ -4,6 +4,8 @@ export default {
   version: '1.0.0',
   orientation: 'default',
   icon: './assets/images/icon.png',
+  // jsEngine: 'jsc',
+  jsEngine: 'hermes',
   scheme: 'myapp',
   userInterfaceStyle: 'automatic',
   splash: {
